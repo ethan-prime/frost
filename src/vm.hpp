@@ -1,8 +1,12 @@
+#pragma once
+
 #include <cstdint>
 #include <array>
+#include <iostream>
+#include <iomanip>
 
 constexpr std::size_t MEMORY_MAX = 1ul << 16;
-std::array<std::uint32_t, MEMORY_MAX> memory{};
+static std::array<std::uint32_t, MEMORY_MAX> memory{};
 
 enum class Reg : std::uint8_t {
     R0 = 0,
@@ -35,6 +39,20 @@ struct RegFile {
     }
 };
 
+extern RegFile reg;
+
+void print_registers() {
+    std::cout << "\n |  ";
+    for (int i{}; i < 8; ++i)
+        std::cout << "R" << i << "  |  ";
+    std::cout << "\n | ";
+    for (int i{}; i < 8; ++i) {
+        std::cout << std::hex
+          << std::setw(4) << std::setfill('0') << reg.registers[i]
+          << std::dec << " | ";    
+    }
+}
+
 enum class Opcode : std::uint8_t {
     BR,
     ADD,
@@ -59,15 +77,4 @@ enum class Flag : std::uint32_t {
     Z = 1u << 1, // zero
     N = 1u << 2, // negative
 };
-
-int main(int argc, const char* argv[]) {
-    // parse args
-    
-    RegFile reg;
-
-    reg[Reg::FLAGS] = static_cast<std::uint32_t>(Flag::Z);
-    reg[Reg::PC] = 0x3000;
-
-    
-}
 
