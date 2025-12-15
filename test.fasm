@@ -1,0 +1,5 @@
+XOR r0, r0, r0
+ADDI r1, r0, 2
+ADDI r2, r0, 3
+SUB r0, r2, r1
+TRAP 10
