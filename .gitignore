@@ -42,3 +42,6 @@ frost
 
 # debug information files
 *.dwo
+
+*/__pycache__
+
