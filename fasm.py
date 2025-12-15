@@ -28,7 +28,7 @@ def panic(s: str) -> None:
 
 def parse_int(s: str) -> Optional[int]:
     try:
-        return int(s)
+        return 0xffff & int(s)
     except:
         panic("expected int")
 
@@ -104,11 +104,8 @@ class Instr:
             "trapvec24" : (parse_int, self.set_trapvec24)
         }
 
-        parse_ = parse_str.replace(",", "").split(" ")
-        instr_ = instr_str.replace(",", "").split(" ")
-
-        if len(parse_) != len(instr_):
-            panic(f"while parsing {instr_str} : expected {parse_str}") 
+        parse_ = parse_str.replace(",", "").split()
+        instr_ = instr_str.replace(",", "").split()
 
         match instr_[0].upper():
             case "NOP"  : self.set_opcode(0x0).set_subop(0x0)
@@ -136,7 +133,7 @@ class Instr:
             case "JG"   : self.set_opcode(0x4).set_subop(0x4)
             case "JGE"  : self.set_opcode(0x4).set_subop(0x5)
             case "JLE"  : self.set_opcode(0x4).set_subop(0x6)
-            case _: panic(f"illegal instruction {instr_[0]}")
+            case _: panic(f"illegal instruction {instr_str}")
  
         for i in range(1, len(parse_)):
             s = parse_[i]
@@ -144,7 +141,6 @@ class Instr:
             if s not in func_tbl:
                 panic(f"unrecognized parse_str {s}")
             parse, self.set = func_tbl[s]
-            print(f"parsing {instr_[i]}")
             self.set(parse(instr_[i]))
 
         return self
@@ -156,7 +152,7 @@ def print_code(instrs: List[Instr]):
         else:
             print(", ", end="")
 
-        print(hex(i.as_int()), end="")
+        print(f"{i.as_int() & 0xffffffff:08x}", end="")
     print()
 
 def main():
@@ -180,6 +176,7 @@ def main():
 
         for i_str in instrs:
             i_str = i_str.strip()
+            if i_str == "": continue
             match i_str.split(" ")[0].upper():
                     case "NOP"  : i = Instr().parse_instr("NOP", i_str)
                     case "HALT" : i = Instr().parse_instr("HALT", i_str)
@@ -198,13 +195,20 @@ def main():
                     case "LDW"  : i = Instr().parse_instr("LDW dr base_r off16", i_str)
                     case "LDWZ"  : i = Instr().parse_instr("LDWZ dr base_r off16", i_str)
                     case "STB"  : i = Instr().parse_instr("STB dr base_r off16", i_str)
-                    case "STBZ"  : i = Instr().parse_instr("STBZ dr base_r off16", i_str)
+                    case "STW"  : i = Instr().parse_instr("STW dr base_r off16", i_str)
+                    case "JMP"  : i = Instr().parse_instr("JMP base_r off16", i_str)
+                    case "JE"   : i = Instr().parse_instr("JE base_r off16", i_str)
+                    case "JNE"  : i = Instr().parse_instr("JNE base_r off16", i_str)
+                    case "JL"   : i = Instr().parse_instr("JL base_r off16", i_str)
+                    case "JG"   : i = Instr().parse_instr("JG base_r off16", i_str)
+                    case "JGE"  : i = Instr().parse_instr("JGE base_r off16", i_str)
+                    case "JLE"  : i = Instr().parse_instr("JLE base_r off16", i_str)
                     case _: panic(f"illegal instruction {i_str}")
             
             res.append(i)
 
     print_code(res)
-    return [int(i) for i in res]
+    return [i.as_int() for i in res]
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,10 @@
 XOR r0, r0, r0
-ADDI r1, r0, 2
-ADDI r2, r0, 3
-SUB r0, r2, r1
-TRAP 10
+ADDI sp, sp, -32 ; stack allocation
+ANDI r0, r1, 4
+AND r2, r0, r1
+TRAP 22
+ADDI fp, fp, 16
+LDBZ r5, sp, -8 ; memory!
+STW  r2, sp, -8
+NOP
+HALT
