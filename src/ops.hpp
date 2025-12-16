@@ -8,8 +8,9 @@
 #include <cstdlib>
 
 extern RegFile reg; //register
+extern bool IS_HALTED;
 
-static void panic(const std::string& msg) {
+inline void panic(const std::string& msg) {
     std::cerr << msg << std::endl;
     std::exit(1);
 }
@@ -67,11 +68,11 @@ static inline std::uint16_t parse_trapvec24(std::uint32_t instr) {
     return parse_i<0, 15>(instr);
 }
 
-static inline std::uint8_t parse_op(std::uint32_t instr) {
+inline std::uint8_t parse_op(std::uint32_t instr) {
     return parse_i<28, 31>(instr);
 }
 
-static inline std::uint8_t parse_subop(std::uint32_t instr) {
+inline std::uint8_t parse_subop(std::uint32_t instr) {
     return parse_i<24, 27>(instr);
 }
 
@@ -118,10 +119,21 @@ static void exec_int_alu(std::uint32_t instr) {
     update_flags(dr);
 }
 
+static void exec_special(std::uint32_t instr) {
+    std::uint8_t subop = parse_subop(instr);
+
+    switch (subop) {
+        case 0x0: return; // no-op
+        case 0x1: IS_HALTED = true; return;
+        default: ill(instr);
+    }
+}
+
 inline void exec_instr(std::uint32_t instr) {
     std::uint8_t opcode = parse_op(instr);
 
     switch (opcode) {
+        case 0x0: exec_special(instr); break;
         case 0x1: exec_int_alu(instr); break;
         default: ill(instr);
     }

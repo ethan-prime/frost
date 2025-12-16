@@ -111,7 +111,7 @@ class Instr:
             case "NOP"  : self.set_opcode(0x0).set_subop(0x0)
             case "HALT" : self.set_opcode(0x0).set_subop(0x1)
             case "TRAP" : self.set_opcode(0x0).set_subop(0x2)
-            case "ADD"  : self.set_opcode(0x1).set_subop(0x1)
+            case "ADD"  : self.set_opcode(0x1).set_subop(0x0)
             case "SUB"  : self.set_opcode(0x1).set_subop(0x1)
             case "AND"  : self.set_opcode(0x1).set_subop(0x2)
             case "OR"   : self.set_opcode(0x1).set_subop(0x3)
@@ -207,8 +207,11 @@ def main():
             
             res.append(i)
 
-    print_code(res)
-    return [i.as_int() for i in res]
+    # print([hex(i.as_int()) for i in res])
+
+    program = [i.as_int().to_bytes(4, byteorder="little") for i in res]
+    for i in program:
+       sys.stdout.buffer.write(i)
 
 if __name__ == "__main__":
     main()

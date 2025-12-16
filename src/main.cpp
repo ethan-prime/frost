@@ -1,7 +1,33 @@
 #include "vm.hpp"
 #include "ops.hpp"
+#include "disassembler.hpp"
+#include <iostream>
+#include <vector>
+#include <iterator>
+#include <algorithm>
 
 RegFile reg{};
+std::array<std::uint8_t, MEMORY_MAX> memory{};
+
+#define R_PC reg[Reg::PC]
+#define R_FLAGS reg[Reg::FLAGS]
+
+static std::vector<std::uint8_t> read_all_bytes(std::istream& in) {
+    in >> std::noskipws;
+    return { std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
+}
+
+static void load_into_memory(const std::vector<std::uint8_t>& prog, std::uint32_t start_addr) {
+    if (start_addr + prog.size() > MEMORY_MAX) throw std::runtime_error("program too large");
+    std::fill(memory.begin(), memory.end(), 0);
+    std::copy(prog.begin(), prog.end(), memory.begin() + start_addr);
+}
+
+static inline std::uint32_t fetch_instr() {
+    std::uint32_t instr = load<std::uint32_t>(R_PC);
+    R_PC += 4;
+    return instr;
+}
 
 void print_registers() {
     for (int i=0; i < 10; i++) {
@@ -34,22 +60,26 @@ void print_registers() {
     std::cout << "\n";
 }
 
+bool IS_HALTED = false;
+
 int main(int argc, const char* argv[]) {
     // parse args
 
-    reg[Reg::FLAGS] = static_cast<std::uint32_t>(Flag::Z);
-    reg[Reg::PC] = 0x3000;
+    auto prog = read_all_bytes(std::cin);
 
-    bool running = true;
+    R_FLAGS = static_cast<std::uint32_t>(Flag::Z);
+    R_PC = 0x3000;
+
+    load_into_memory(prog, R_PC);
+
     bool debug = true;
     
-    memory[reg[Reg::PC]] = 0x14000000;
-
-    while (running) {
-        // fetch instr
-        std::uint32_t instr = memory[reg[Reg::PC]];
+    while (!IS_HALTED) {
+        std::uint32_t instr = fetch_instr();
         exec_instr(instr);
-        if (debug) print_registers();
-        reg[Reg::PC]++;
+        if (debug) {
+            disassembler::print_asm_str(instr); 
+            print_registers();
+        }
     }
 }
