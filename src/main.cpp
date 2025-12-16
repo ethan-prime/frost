@@ -1,8 +1,38 @@
 #include "vm.hpp"
 #include "ops.hpp"
-#include <iostream>
 
 RegFile reg{};
+
+void print_registers() {
+    for (int i=0; i < 10; i++) {
+        std::cout << fmt::format("     R{}     |", i);
+    }
+
+    
+    std::cout << fmt::format("     R10    |");
+
+    std::cout << "\n";
+
+    for(int i=0; i <= 10; i++) {
+        std::cout << fmt::format(" 0x{:08X} |", reg.registers[i]);
+    }
+    
+
+    std::cout << "\n";
+
+    std::cout << fmt::format("     PC     |");
+    std::cout << fmt::format("     FP     |");
+    std::cout << fmt::format("     SP     |");
+    std::cout << fmt::format("     RA     |");
+    std::cout << fmt::format("     FL     |");
+    
+    std::cout << "\n";
+
+    for(int i=11; i < 16; i++) {
+        std::cout << fmt::format(" 0x{:08X} |", reg.registers[i]);
+    }
+    std::cout << "\n";
+}
 
 int main(int argc, const char* argv[]) {
     // parse args
@@ -13,50 +43,12 @@ int main(int argc, const char* argv[]) {
     bool running = true;
     bool debug = true;
     
-    memory[reg[Reg::PC]] = 0x00001021;
+    memory[reg[Reg::PC]] = 0x14000000;
 
     while (running) {
-        // fetch
-        // top 16 bits unused
-        uint16_t instr = memory[reg[Reg::PC]] & 0xFFFF;
-        uint8_t op = instr >> 12;
-
-        switch (static_cast<Opcode>(op))
-        {
-            case Opcode::ADD:
-                exec_add(instr);
-                break;
-            case Opcode::AND:
-                break;
-            case Opcode::NOT:
-                break;
-            case Opcode::BR:
-                break;
-            case Opcode::JMP:
-                break;
-            case Opcode::JSR:
-                break;
-            case Opcode::LD:
-                break;
-            case Opcode::LDI:
-                break;
-            case Opcode::LDR:
-                break;
-            case Opcode::LEA:
-                break;
-            case Opcode::ST:
-                break;
-            case Opcode::STI:
-                break;
-            case Opcode::STR:
-                break;
-            case Opcode::TRAP:
-                break;
-            case Opcode::RES:
-            case Opcode::NOP:
-            default:
-                break;
-        }
+        // fetch instr
+        std::uint32_t instr = memory[reg[Reg::PC]];
+        exec_instr(instr);
         if (debug) print_registers();
         reg[Reg::PC]++;
     }

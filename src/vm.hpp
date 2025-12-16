@@ -2,8 +2,6 @@
 
 #include <cstdint>
 #include <array>
-#include <iostream>
-#include <iomanip>
 
 constexpr std::size_t MEMORY_MAX = 1ul << 16;
 static std::array<std::uint32_t, MEMORY_MAX> memory{};
@@ -17,10 +15,14 @@ enum class Reg : std::uint8_t {
     R5,
     R6,
     R7,
-    
-    PC, // program counter
-    SP, // stack pointer
-    FP, // frame pointer
+    R8,
+    R9,
+    R10,
+
+    PC,
+    FP,
+    SP,
+    RA,
     FLAGS,
 
     COUNT
@@ -41,40 +43,9 @@ struct RegFile {
 
 extern RegFile reg;
 
-void print_registers() {
-    std::cout << "\n |  ";
-    for (int i{}; i < 8; ++i)
-        std::cout << "R" << i << "  |  ";
-    std::cout << "\n | ";
-    for (int i{}; i < 8; ++i) {
-        std::cout << std::hex
-          << std::setw(4) << std::setfill('0') << reg.registers[i]
-          << std::dec << " | ";    
-    }
-}
-
-enum class Opcode : std::uint8_t {
-    BR,
-    ADD,
-    LD,
-    ST,
-    JSR, // jump register
-    AND,
-    LDR, // load register
-    STR, // store register
-    NOP, // no-op
-    NOT,
-    LDI, // load indirect
-    STI, // store indirect
-    JMP,
-    RES, // unused
-    LEA,
-    TRAP,
-};
-
 enum class Flag : std::uint32_t {
-    P = 1u << 0, // positive
-    Z = 1u << 1, // zero
-    N = 1u << 2, // negative
+    P = 1 << 0,
+    N = 1 << 1,
+    Z = 1 << 2,
 };
 

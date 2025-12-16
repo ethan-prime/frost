@@ -16,11 +16,11 @@ class Reg(Enum):
     R8 = 8
     R9 = 9
     R10 = 10
-    R11 = 11
-    R12 = 12
-    FP = 13
-    SP = 14
-    RA = 15
+    PC = 11
+    FP = 12
+    SP = 13
+    RA = 14
+    FLAGS = 15
 
 def panic(s: str) -> None:
     print(s)
@@ -35,8 +35,8 @@ def parse_int(s: str) -> Optional[int]:
 def parse_reg(reg_str: str) -> Reg:
     reg_str = reg_str.lower()
     reg_list = ["r0", "r1", "r2", "r3", "r4", "r5",
-                "r6", "r7", "r8", "r9", "r10", "r11",
-                "r12", "fp", "sp", "ra"]
+                "r6", "r7", "r8", "r9", "r10",
+                "pc", "fp", "sp", "ra"]
 
     if reg_str not in reg_list:
         panic(f"register {reg_str} invalid")
