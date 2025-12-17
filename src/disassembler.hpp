@@ -30,7 +30,7 @@ static void print_register(Reg r) {
 }
 
 static void print_imm16(std::uint16_t imm16) {
-	std::print("{}{}{} ", debug::ansi::fg_cyan, static_cast<std::int16_t>(imm16), debug::ansi::reset);
+	std::print("{}0x{:04X} ({}) {} ", debug::ansi::fg_cyan, imm16, static_cast<std::int16_t>(imm16), debug::ansi::reset);
 }
 
 namespace disassembler {

@@ -74,4 +74,27 @@ void print_registers() {
 
 	last_reg = reg;
 }
+
+void _print_mem(std::uint32_t addr, std::size_t n_bytes) {
+	std::print("{}{}0x{:08X}{}", ansi::fg_red, ansi::bg_dark, addr, ansi::reset);
+	std::print("{}{}= ", ansi::bg_dark, ansi::fg_dim);
+	for (std::size_t i = 0; i < n_bytes; ++i) {
+		std::print("0x{:02X} ", load<std::uint8_t>(addr+i));
+	}
+	std::println("{}", ansi::reset);
+}
+
+void print_mem(std::uint32_t addr, std::size_t n_bytes) {
+	std::size_t printed = 0;
+	for (size_t i = 0; printed < n_bytes; ++i) {
+		if (n_bytes - printed > 8) {
+			_print_mem(addr + 8 * i, 8);
+			printed += 8;
+		} else {
+			_print_mem(addr + 8 * i, n_bytes - printed);
+			printed += (n_bytes - printed);
+		}
+	}
+}
+
 }

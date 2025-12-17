@@ -1,7 +1,7 @@
 ADDI sp, sp, 2000 ; sp = 2000
 ADDI fp, sp, 0 ; fp = sp
 ADDI sp, sp, -4 ; sp = sp -4
-ADDI r0, r0, 103 ; r0 = 0x67
+ADDI r0, r0, 10390 ; r0 = 0x67
 STW  r0, fp, 0 ; *(fp) = 0x67
 LDW  r1, fp, 0 ; r1 = *(fp)
 HALT
