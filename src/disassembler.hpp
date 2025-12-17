@@ -1,6 +1,7 @@
 #pragma once
 #include "vm.hpp"
 #include "ops.hpp"
+#include "debug.hpp"
 
 #include <unordered_map>
 #include <print>
@@ -25,7 +26,7 @@ static void print_register(Reg r) {
         {15, "fl"},
     };
 
-    std::print("{} ", r_tbl[static_cast<std::uint8_t>(r)]);
+    std::print("{}{}{} ", debug::ansi::fg_red, r_tbl[static_cast<std::uint8_t>(r)], debug::ansi::reset);
 }
 
 namespace disassembler {
@@ -48,9 +49,9 @@ inline void print_asm_str(std::uint32_t instr) {
     std::uint8_t code = (opcode << 4) | subop;
 
     if (i_tbl.count(code)) {
-        std::print("{} ", i_tbl[code]);
+        std::print("{}{}{} ", debug::ansi::fg_lblue, i_tbl[code], debug::ansi::reset);
     } else {
-        std::print("instruction 0x{:08X}\n", instr);
+        std::println("instruction 0x{:08X}", instr);
     }
 
     switch(opcode) {

@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "ops.hpp"
+#include "debug.hpp"
 #include "disassembler.hpp"
 #include <iostream>
 #include <vector>
@@ -29,36 +30,7 @@ static inline std::uint32_t fetch_instr() {
     return instr;
 }
 
-void print_registers() {
-    for (int i=0; i < 10; i++) {
-        std::cout << fmt::format("     R{}     |", i);
-    }
 
-    
-    std::cout << fmt::format("     R10    |");
-
-    std::cout << "\n";
-
-    for(int i=0; i <= 10; i++) {
-        std::cout << fmt::format(" 0x{:08X} |", reg.registers[i]);
-    }
-    
-
-    std::cout << "\n";
-
-    std::cout << fmt::format("     PC     |");
-    std::cout << fmt::format("     FP     |");
-    std::cout << fmt::format("     SP     |");
-    std::cout << fmt::format("     RA     |");
-    std::cout << fmt::format("     FL     |");
-    
-    std::cout << "\n";
-
-    for(int i=11; i < 16; i++) {
-        std::cout << fmt::format(" 0x{:08X} |", reg.registers[i]);
-    }
-    std::cout << "\n";
-}
 
 bool IS_HALTED = false;
 
@@ -74,12 +46,18 @@ int main(int argc, const char* argv[]) {
 
     bool debug = true;
     
+	size_t cycle = 0;
+
     while (!IS_HALTED) {
         std::uint32_t instr = fetch_instr();
         exec_instr(instr);
         if (debug) {
-            disassembler::print_asm_str(instr); 
-            print_registers();
+			std::println("");
+			debug::print_line();
+			std::print(" CYCLE= {}\n INSTR= ", cycle); 
+            disassembler::print_asm_str(instr);
+			debug::print_registers();
         }
+		cycle++;
     }
 }
