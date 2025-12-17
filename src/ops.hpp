@@ -180,8 +180,39 @@ static void exec_mem(std::uint32_t instr) {
 			store<std::uint32_t>(reg[base_r] + off16, reg[dr]);
 			break;
 	}
+}
 
-	update_flags(dr);
+
+template <Flag... Fs>
+inline constexpr std::uint32_t flag_mask = 
+	(0u | ... | static_cast<std::uint32_t>(Fs));
+
+template <Flag... Fs>
+inline bool take_jump() {
+	return (reg[Reg::FLAGS] & flag_mask<Fs...>);
+}
+
+template <Flag... Fs>
+static void jump_flags(Reg base_r, std::uint32_t off16) {
+	if (take_jump<Fs...>())
+		reg[Reg::PC] = reg[base_r] + off16;
+}
+
+static void exec_jump(std::uint32_t instr) {
+	std::uint8_t subop = parse_subop(instr);
+
+	Reg base_r = parse_base_r(instr);
+	std::uint32_t off16 = sign_extend(parse_off16(instr), 16);
+
+	switch (subop) {
+		case 0x0: jump_flags<Flag::Z, Flag::N, Flag::P>(base_r, off16); break;
+		case 0x1: jump_flags<Flag::Z>(base_r, off16); break;
+		case 0x2: jump_flags<Flag::P, Flag::N>(base_r, off16); break;
+		case 0x3: jump_flags<Flag::N>(base_r, off16); break;
+		case 0x4: jump_flags<Flag::P>(base_r, off16); break;
+		case 0x5: jump_flags<Flag::P, Flag::Z>(base_r, off16); break;
+		case 0x6: jump_flags<Flag::N, Flag::Z>(base_r, off16); break;
+	}
 }
 
 inline void exec_instr(std::uint32_t instr) {
@@ -192,6 +223,7 @@ inline void exec_instr(std::uint32_t instr) {
         case 0x1: exec_int_alu(instr); break;
 		case 0x2: exec_int_imm(instr); break; 
 		case 0x3: exec_mem(instr); break;
+		case 0x4: exec_jump(instr); break;
 		default: ill(instr);
     }
 }

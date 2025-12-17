@@ -57,7 +57,7 @@ int main(int argc, const char* argv[]) {
 			std::print(" CYCLE= {}\n INSTR= ", cycle); 
             disassembler::print_asm_str(instr);
 			debug::print_registers();
-			debug::print_mem(reg[Reg::SP], 16);
+			// debug::print_mem(reg[Reg::SP], 16);
         }
 		cycle++;
     }

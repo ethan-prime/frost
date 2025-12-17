@@ -10,7 +10,8 @@ namespace ansi {
     constexpr std::string_view reset = "\033[0m";
     constexpr std::string_view fg_red   = "\x1b[38;5;203m";
     constexpr std::string_view fg_cyan = "\x1b[38;5;73m";
-    constexpr std::string_view fg_lblue = "\x1b[38;5;111m"; 
+    constexpr std::string_view fg_lblue = "\x1b[38;5;111m";
+	constexpr std::string_view fg_green = "\x1b[38;5;42m";
     constexpr std::string_view fg_dim   = "\x1b[38;5;250m";
 	constexpr std::string_view bg_dark  = "\x1b[48;5;235m";
 	constexpr std::string_view bg_dim   = "\x1b[48;5;250m";
@@ -36,36 +37,36 @@ void print_registers() {
 	print_line();
 
     for (int i = 0; i < 10; i++) {
-        std::print("{}{}     r{}     {}|", ansi::bg_dark, ansi::fg_red, i, ansi::reset);
+        std::print("{}{}     r{}     {}│", ansi::bg_dark, ansi::fg_red, i, ansi::reset);
     }
 	
-    std::print("{}{}     r10    {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     r10    {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
 
     std::println("");
 
     for (int i = 0; i <= 10; i++) {
 		if (last_reg.registers[i] != reg.registers[i])
-			std::print("{}{} 0x{:08X} {}|", ansi::bg_dark, ansi::fg_cyan, reg.registers[i], ansi::reset);
+			std::print("{}{} 0x{:08X} {}│", ansi::bg_dark, ansi::fg_green, reg.registers[i], ansi::reset);
 		else 
-			std::print("{}{} 0x{:08X} {}|", ansi::bg_dark, ansi::fg_dim, reg.registers[i], ansi::reset);
+			std::print("{}{} 0x{:08X} {}│", ansi::bg_dark, ansi::fg_dim, reg.registers[i], ansi::reset);
     }
     
 
 	std::println("");
 
-    std::print("{}{}     pc     {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
-    std::print("{}{}     fp     {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
-    std::print("{}{}     sp     {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
-    std::print("{}{}     ra     {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
-    std::print("{}{}     fl     {}|", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     pc     {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     fp     {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     sp     {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     ra     {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
+    std::print("{}{}     fl     {}│", ansi::bg_dark, ansi::fg_red, ansi::reset);
     
     std::println("");
 
     for (int i = 11; i < 16; i++) {
 		if (last_reg.registers[i] != reg.registers[i])
-			std::print("{}{} 0x{:08X} {}|", ansi::fg_cyan, ansi::bg_dark, reg.registers[i], ansi::reset);
+			std::print("{}{} 0x{:08X} {}│", ansi::fg_green, ansi::bg_dark, reg.registers[i], ansi::reset);
 		else
-			std::print("{}{} 0x{:08X} {}|", ansi::fg_dim, ansi::bg_dark, reg.registers[i], ansi::reset);
+			std::print("{}{} 0x{:08X} {}│", ansi::fg_dim, ansi::bg_dark, reg.registers[i], ansi::reset);
     
 	}
 	std::println("");
@@ -76,7 +77,7 @@ void print_registers() {
 }
 
 void _print_mem(std::uint32_t addr, std::size_t n_bytes) {
-	std::print("{}{}0x{:08X}{}", ansi::fg_red, ansi::bg_dark, addr, ansi::reset);
+	std::print("{}{} 0x{:08X}{}", ansi::fg_red, ansi::bg_dark, addr, ansi::reset);
 	std::print("{}{}= ", ansi::bg_dark, ansi::fg_dim);
 	for (std::size_t i = 0; i < n_bytes; ++i) {
 		std::print("0x{:02X} ", load<std::uint8_t>(addr+i));
