@@ -29,6 +29,10 @@ static void print_register(Reg r) {
     std::print("{}{}{} ", debug::ansi::fg_red, r_tbl[static_cast<std::uint8_t>(r)], debug::ansi::reset);
 }
 
+static void print_imm16(std::uint16_t imm16) {
+	std::print("{}{}{} ", debug::ansi::fg_cyan, static_cast<std::int16_t>(imm16), debug::ansi::reset);
+}
+
 namespace disassembler {
 inline void print_asm_str(std::uint32_t instr) {
     std::uint8_t opcode = parse_op(instr);
@@ -43,6 +47,26 @@ inline void print_asm_str(std::uint32_t instr) {
         {0x12, "AND"},
         {0x13, "OR"},
         {0x14, "XOR"},
+
+		{0x20, "ADDI"},
+		{0x21, "ANDI"},
+		{0x22, "ORI"},
+		{0x23, "XORI"},
+
+		{0x31, "LDB"},
+		{0x32, "LDBZ"},
+		{0x33, "LDW"},
+		{0x34, "LDWZ"},
+		{0x35, "STB"},
+		{0x36, "STW"},
+
+		{0x40, "JMP"},
+		{0x41, "JE"},
+		{0x42, "JNE"},
+		{0x43, "JL"},
+		{0x44, "JG"},
+		{0x45, "JGE"},
+		{0x46, "JLE"},
     }; 
 
 
@@ -61,6 +85,20 @@ inline void print_asm_str(std::uint32_t instr) {
         print_register(parse_sr1(instr));
         print_register(parse_sr2(instr));
         break;
+	case 0x2:
+		print_register(parse_dr(instr));
+		print_register(parse_sr(instr));
+		print_imm16(parse_imm16(instr));
+		break;
+	case 0x3:
+		print_register(parse_dr(instr));
+		print_register(parse_base_r(instr));
+		print_imm16(parse_off16(instr));
+		break;
+	case 0x4:
+		print_register(parse_base_r(instr));
+		print_imm16(parse_off16(instr));
+		break;
     }
 
     std::println("(0x{:08X})", instr); 

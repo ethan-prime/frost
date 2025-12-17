@@ -76,7 +76,7 @@ inline std::uint8_t parse_subop(std::uint32_t instr) {
     return parse_i<24, 27>(instr);
 }
 
-static std::uint32_t sign_extend(std::uint32_t x, int bit_count) {
+inline std::uint32_t sign_extend(std::uint32_t x, int bit_count) {
     if ((x >> (bit_count - 1)) & 1) {
         x |= (0xFFFFFFFF << bit_count);
     }
@@ -119,6 +119,29 @@ static void exec_int_alu(std::uint32_t instr) {
     update_flags(dr);
 }
 
+template <typename Op>
+static void int_imm(Reg dr, Reg sr, std::uint32_t imm16, Op op) {
+	reg[dr] = op(reg[sr], imm16);
+}
+
+static void exec_int_imm(std::uint32_t instr) {
+	std::uint8_t subop = parse_subop(instr);
+
+	Reg dr = parse_dr(instr);
+	Reg sr = parse_sr1(instr);
+	std::uint32_t imm16 = sign_extend(parse_imm16(instr), 16);
+
+	switch (subop) {
+		case 0x0: int_imm(dr, sr, imm16, std::plus<std::uint32_t>{}); break;
+		case 0x1: int_imm(dr, sr, imm16, std::bit_and<std::uint32_t>{}); break; 
+		case 0x2: int_imm(dr, sr, imm16, std::bit_or<std::uint32_t>{}); break; 
+		case 0x3: int_imm(dr, sr, imm16, std::bit_xor<std::uint32_t>{}); break; 
+		default: ill(instr);
+	}
+
+	update_flags(dr);
+}
+
 static void exec_special(std::uint32_t instr) {
     std::uint8_t subop = parse_subop(instr);
 
@@ -129,12 +152,46 @@ static void exec_special(std::uint32_t instr) {
     }
 }
 
+static void exec_mem(std::uint32_t instr) {
+	std::uint8_t subop = parse_subop(instr);
+
+	Reg base_r = parse_base_r(instr);
+	Reg dr = parse_dr(instr);
+	std::uint32_t off16 = parse_off16(instr);
+
+
+	switch (subop) {
+		case 0x1: 
+		case 0x2: {
+			std::uint32_t byte = load<std::uint8_t>(reg[base_r] + off16);
+			if (subop == 0x1) {
+				byte = sign_extend(byte, 8);
+			}
+			reg[dr] = byte;
+			break;
+		}
+		case 0x3:
+			reg[dr] = load<std::uint32_t>(reg[base_r] + off16);
+			break;
+		case 0x5:
+			store<std::uint8_t>(reg[base_r] + off16, reg[dr] & 0xFF);
+			break;
+		case 0x6:
+			store<std::uint32_t>(reg[base_r] + off16, reg[dr]);
+			break;
+	}
+
+	update_flags(dr);
+}
+
 inline void exec_instr(std::uint32_t instr) {
     std::uint8_t opcode = parse_op(instr);
 
     switch (opcode) {
         case 0x0: exec_special(instr); break;
         case 0x1: exec_int_alu(instr); break;
-        default: ill(instr);
+		case 0x2: exec_int_imm(instr); break; 
+		case 0x3: exec_mem(instr); break;
+		default: ill(instr);
     }
 }
