@@ -1,4 +1,4 @@
-SUB sp, sp, pc ; sp = sp + pc
+SUB sp, sp, pc ; sp = sp - pc
 XOR r0, r0, r0 ; 
 ADD r0, r0, sp ; r0 = sp
 XOR r1, r1, r1 ; 
