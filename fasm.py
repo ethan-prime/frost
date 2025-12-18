@@ -85,6 +85,11 @@ class Instr:
         self.instr |= off16
         return self
 
+    def set_imm12(self, imm12: int):
+
+        self.instr |= imm12
+        return self
+
     def set_trapvec24(self, trapvec24: int):
         self.instr |= trapvec24
         return self
@@ -101,6 +106,7 @@ class Instr:
             "base_r" : (parse_reg, self.set_base_r),
             "imm16" : (parse_int, self.set_imm16),
             "off16" : (parse_int, self.set_off16),
+            "imm12" : (parse_int, self.set_imm12),
             "trapvec24" : (parse_int, self.set_trapvec24)
         }
 
@@ -111,6 +117,8 @@ class Instr:
             case "NOP"  : self.set_opcode(0x0).set_subop(0x0)
             case "HALT" : self.set_opcode(0x0).set_subop(0x1)
             case "TRAP" : self.set_opcode(0x0).set_subop(0x2)
+            case "CALL" : self.set_opcode(0x0).set_subop(0x3)
+            case "RET"  : self.set_opcode(0x0).set_subop(0x4)
             case "ADD"  : self.set_opcode(0x1).set_subop(0x0)
             case "SUB"  : self.set_opcode(0x1).set_subop(0x1)
             case "AND"  : self.set_opcode(0x1).set_subop(0x2)
@@ -120,19 +128,23 @@ class Instr:
             case "ANDI" : self.set_opcode(0x2).set_subop(0x1)
             case "ORI"  : self.set_opcode(0x2).set_subop(0x2)
             case "XORI" : self.set_opcode(0x2).set_subop(0x3)
+            case "SUBI" : self.set_opcode(0x2).set_subop(0x4)
             case "LDB"  : self.set_opcode(0x3).set_subop(0x1)
             case "LDBZ" : self.set_opcode(0x3).set_subop(0x2)
             case "LDW"  : self.set_opcode(0x3).set_subop(0x3)
             case "LDWZ" : self.set_opcode(0x3).set_subop(0x4)
             case "STB"  : self.set_opcode(0x3).set_subop(0x5)
             case "STW"  : self.set_opcode(0x3).set_subop(0x6)
+            case "LEA"  : self.set_opcode(0x3).set_subop(0x7)
             case "JMP"  : self.set_opcode(0x4).set_subop(0x0)
             case "JE"   : self.set_opcode(0x4).set_subop(0x1)
             case "JNE"  : self.set_opcode(0x4).set_subop(0x2)
             case "JL"   : self.set_opcode(0x4).set_subop(0x3)
             case "JG"   : self.set_opcode(0x4).set_subop(0x4)
             case "JGE"  : self.set_opcode(0x4).set_subop(0x5)
-            case "JLE"  : self.set_opcode(0x4).set_subop(0x6)
+            case "PUSH" : self.set_opcode(0x5).set_subop(0x0)
+            case "POP"  : self.set_opcode(0x5).set_subop(0x1)
+            
             case _: panic(f"illegal instruction {instr_str}")
  
         for i in range(1, len(parse_)):
@@ -181,6 +193,8 @@ def main():
                     case "NOP"  : i = Instr().parse_instr("NOP", i_str)
                     case "HALT" : i = Instr().parse_instr("HALT", i_str)
                     case "TRAP" : i = Instr().parse_instr("TRAP trapvec24", i_str)
+                    case "CALL" : i = Instr().parse_instr("CALL base_r off16", i_str)
+                    case "RET"  : i = Instr().parse_instr("RET", i_str)
                     case "ADD"  : i = Instr().parse_instr("ADD dr sr1 sr2", i_str)
                     case "SUB"  : i = Instr().parse_instr("SUB dr sr1 sr2", i_str)
                     case "AND"  : i = Instr().parse_instr("AND dr sr1 sr2", i_str)
@@ -190,18 +204,23 @@ def main():
                     case "ANDI" : i = Instr().parse_instr("ANDI dr sr imm16", i_str)
                     case "ORI"  : i = Instr().parse_instr("ORI dr sr imm16", i_str)
                     case "XORI" : i = Instr().parse_instr("XORI dr sr imm16", i_str)
+                    case "SUBI" : i = Instr().parse_instr("SUBI dr sr imm16", i_str)
                     case "LDB"  : i = Instr().parse_instr("LDB dr base_r off16", i_str)
                     case "LDBZ" : i = Instr().parse_instr("LDBZ dr base_r off16", i_str)
                     case "LDW"  : i = Instr().parse_instr("LDW dr base_r off16", i_str)
                     case "LDWZ"  : i = Instr().parse_instr("LDWZ dr base_r off16", i_str)
                     case "STB"  : i = Instr().parse_instr("STB dr base_r off16", i_str)
                     case "STW"  : i = Instr().parse_instr("STW dr base_r off16", i_str)
+                    case "LEA"  : i = Instr().parse_instr("LEA dr sr1 sr2 imm12", i_str)
                     case "JMP"  : i = Instr().parse_instr("JMP base_r off16", i_str)
                     case "JE"   : i = Instr().parse_instr("JE base_r off16", i_str)
                     case "JNE"  : i = Instr().parse_instr("JNE base_r off16", i_str)
                     case "JL"   : i = Instr().parse_instr("JL base_r off16", i_str)
                     case "JG"   : i = Instr().parse_instr("JG base_r off16", i_str)
                     case "JGE"  : i = Instr().parse_instr("JGE base_r off16", i_str)
+                    case "JLE"  : i = Instr().parse_instr("JLE base_r off16", i_str)
+                    case "PUSH" : i = Instr().parse_instr("PUSH dr", i_str)
+                    case "POP"  : i = Instr().parse_instr("POP dr", i_str)
                     case "JLE"  : i = Instr().parse_instr("JLE base_r off16", i_str)
                     case _: panic(f"illegal instruction {i_str}")
             

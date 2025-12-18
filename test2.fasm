@@ -1,0 +1,5 @@
+ADDI sp, sp, 800
+ADDI r1, r1, 4
+
+LEA r0, sp, r1, 4 ; r0 = sp + r1 * 4
+SUBI sp, sp, 8

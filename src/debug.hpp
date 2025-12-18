@@ -87,12 +87,13 @@ void _print_mem(std::uint32_t addr, std::size_t n_bytes) {
 
 void print_mem(std::uint32_t addr, std::size_t n_bytes) {
 	std::size_t printed = 0;
+	constexpr int print_n = 4;
 	for (size_t i = 0; printed < n_bytes; ++i) {
-		if (n_bytes - printed > 8) {
-			_print_mem(addr + 8 * i, 8);
-			printed += 8;
+		if (n_bytes - printed > print_n) {
+			_print_mem(addr + print_n * i, print_n);
+			printed += print_n;
 		} else {
-			_print_mem(addr + 8 * i, n_bytes - printed);
+			_print_mem(addr + print_n * i, n_bytes - printed);
 			printed += (n_bytes - printed);
 		}
 	}

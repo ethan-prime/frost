@@ -12,6 +12,7 @@ std::array<std::uint8_t, MEMORY_MAX> memory{};
 
 #define R_PC reg[Reg::PC]
 #define R_FLAGS reg[Reg::FLAGS]
+#define R_SP reg[Reg::SP]
 
 static std::vector<std::uint8_t> read_all_bytes(std::istream& in) {
     in >> std::noskipws;
@@ -57,7 +58,7 @@ int main(int argc, const char* argv[]) {
 			std::print(" CYCLE= {}\n INSTR= ", cycle); 
             disassembler::print_asm_str(instr);
 			debug::print_registers();
-			// debug::print_mem(reg[Reg::SP], 16);
+			debug::print_mem(reg[Reg::SP], 16);
         }
 		cycle++;
     }
