@@ -7,6 +7,7 @@ fvm: virtual machine which executes binary instructions
 ```bash
 usage: python3 fasm.py <file.fasm> | ./build/fvm
 ```
+![debug dashboard](assets/image.png)
 
 ## frost asm specification
 | Category                    | Mnemonic        | Opcode | Sub-Op / Flag | Operands              |
