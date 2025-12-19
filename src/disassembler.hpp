@@ -59,6 +59,8 @@ inline void print_asm_str(Instr instr) {
 		{0x22, "ORI"},
 		{0x23, "XORI"},
 		{0x24, "SUBI"},
+		{0x25, "SHL"},
+		{0x26, "SHR"},
 
 		{0x31, "LDB"},
 		{0x32, "LDBZ"},
@@ -100,7 +102,8 @@ inline void print_asm_str(Instr instr) {
     case 0x1: 
         print_register(instr.parse_dr());
         print_register(instr.parse_sr1());
-        print_register(instr.parse_sr2());
+        if (subop != 0x5 and subop != 0x6)
+			print_register(instr.parse_sr2());
         break;
 	case 0x2:
 		print_register(instr.parse_dr());

@@ -134,6 +134,24 @@ static void exec_int_alu(Instr instr) {
     update_flags(dr);
 }
 
+template <typename T>
+struct shl {
+	constexpr T operator()(const T x, unsigned n) const
+		requires requires { x << n; }
+	{
+		return x << n;	
+	}
+};
+
+template <typename T>
+struct shr {
+	constexpr T operator()(const T x, unsigned n) const
+		requires requires { x >> n; }
+	{
+		return x >> n;	
+	}
+};
+
 template <typename Op>
 static void int_imm(Reg dr, Reg sr, std::uint32_t imm16, Op op) {
 	reg[dr] = op(reg[sr], imm16);
@@ -145,13 +163,16 @@ static void exec_int_imm(Instr instr) {
 	Reg dr = instr.parse_dr();
 	Reg sr = instr.parse_sr1();
 	std::uint32_t imm16 = sign_extend(instr.parse_imm16(), 16);
+	std::uint32_t imm16u = instr.parse_imm16();
 
 	switch (subop) {
 		case 0x0: int_imm(dr, sr, imm16, std::plus<std::uint32_t>{}); break;
-		case 0x1: int_imm(dr, sr, imm16, std::bit_and<std::uint32_t>{}); break; 
-		case 0x2: int_imm(dr, sr, imm16, std::bit_or<std::uint32_t>{}); break; 
-		case 0x3: int_imm(dr, sr, imm16, std::bit_xor<std::uint32_t>{}); break; 
+		case 0x1: int_imm(dr, sr, imm16u, std::bit_and<std::uint32_t>{}); break; 
+		case 0x2: int_imm(dr, sr, imm16u, std::bit_or<std::uint32_t>{}); break; 
+		case 0x3: int_imm(dr, sr, imm16u, std::bit_xor<std::uint32_t>{}); break; 
 		case 0x4: int_imm(dr, sr, imm16, std::minus<std::uint32_t>{}); break; 
+		case 0x5: int_imm(dr, sr, imm16, shl<std::uint32_t>{}); break; 
+		case 0x6: int_imm(dr, sr, imm16, shr<std::uint32_t>{}); break; 
 		default: ill(instr);
 	}
 

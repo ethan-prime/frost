@@ -4,6 +4,9 @@ from enum import Enum
 
 from typing import Optional, List
 
+UINT16_MAX = (1 << 16) - 1
+UINT32_MAX = (1 << 32) - 1
+
 class Reg(Enum):
     R0 = 0
     R1 = 1
@@ -29,6 +32,8 @@ def panic(s: str) -> None:
 
 def parse_int(s: str) -> Optional[int]:
     try:
+        if s.startswith("0x"):
+            return 0xffff & int(s, 16)
         return 0xffff & int(s)
     except:
         panic("expected int")
@@ -134,6 +139,8 @@ class Instr:
             case "ORI"  : self.set_opcode(0x2).set_subop(0x2)
             case "XORI" : self.set_opcode(0x2).set_subop(0x3)
             case "SUBI" : self.set_opcode(0x2).set_subop(0x4)
+            case "SHL"  : self.set_opcode(0x2).set_subop(0x5)
+            case "SHR"  : self.set_opcode(0x2).set_subop(0x6)
             case "LDB"  : self.set_opcode(0x3).set_subop(0x1)
             case "LDBZ" : self.set_opcode(0x3).set_subop(0x2)
             case "LDW"  : self.set_opcode(0x3).set_subop(0x3)
@@ -198,6 +205,31 @@ def resolve_labels(instrs):
     
     return instrs_
 
+def resolve_loads(instrs):
+    instrs_ = []
+
+    for i, i_str in enumerate(instrs):
+        keyws = i_str.split(" ")
+        if keyws[0] == "LDR":
+            if len(keyws) < 3:
+                panic(f"LDR takes two arguments: dr, imm")
+            n = int(keyws[2], 0)
+            if n > UINT32_MAX:
+                print(UINT32_MAX)
+                panic(f"expected 32 bit integer, got {n}")
+            instrs_.append(f"XOR {keyws[1]} {keyws[1]} {keyws[1]}")
+            if n > UINT16_MAX: # need to load high 16 bits first
+                instrs_.append(f"ADDI {keyws[1]} {keyws[1]} {n >> 16}")
+                instrs_.append(f"SHL  {keyws[1]} {keyws[1]} 16")
+                instrs_.append(f"ORI {keyws[1]} {keyws[1]} {n & 0xFFFF}")
+            else:
+                instrs_.append("ADDI {keyws[1]} {keyws[1]} {n}")
+
+        else:
+            instrs_.append(i_str)
+
+    return instrs_
+
 def main():
     parser = argparse.ArgumentParser(
         description="fsm"
@@ -215,7 +247,8 @@ def main():
     with open(args.input) as f:
         instrs = f.readlines()
         instrs = resolve_labels([i_str.strip() for i_str in instrs if i_str.strip() != ""])
-
+        instrs = resolve_loads(instrs)
+        
         res = []
         
         offset = 0
@@ -237,6 +270,8 @@ def main():
                     case "ORI"  : i = Instr().parse_instr("ORI dr sr imm16", i_str)
                     case "XORI" : i = Instr().parse_instr("XORI dr sr imm16", i_str)
                     case "SUBI" : i = Instr().parse_instr("SUBI dr sr imm16", i_str)
+                    case "SHL"  : i = Instr().parse_instr("SHL dr sr imm16", i_str)
+                    case "SHR"  : i = Instr().parse_instr("SHR dr sr imm16", i_str)
                     case "LDB"  : i = Instr().parse_instr("LDB dr base_r off16", i_str)
                     case "LDBZ" : i = Instr().parse_instr("LDBZ dr base_r off16", i_str)
                     case "LDW"  : i = Instr().parse_instr("LDW dr base_r off16", i_str)
