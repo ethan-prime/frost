@@ -1,6 +1,6 @@
 _start:
-	ADDI sp, sp, 3200
-	ADDI r0, r0, 0
+	LDR sp, 0x5000
+	LDR r0, 0
 	ADDI r1, r1, 8
 
 _loop:

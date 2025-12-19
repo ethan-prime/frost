@@ -223,7 +223,7 @@ def resolve_loads(instrs):
                 instrs_.append(f"SHL  {keyws[1]} {keyws[1]} 16")
                 instrs_.append(f"ORI {keyws[1]} {keyws[1]} {n & 0xFFFF}")
             else:
-                instrs_.append("ADDI {keyws[1]} {keyws[1]} {n}")
+                instrs_.append(f"ADDI {keyws[1]} {keyws[1]} {n}")
 
         else:
             instrs_.append(i_str)
@@ -248,7 +248,7 @@ def main():
         instrs = f.readlines()
         instrs = resolve_labels([i_str.strip() for i_str in instrs if i_str.strip() != ""])
         instrs = resolve_loads(instrs)
-        
+
         res = []
         
         offset = 0
