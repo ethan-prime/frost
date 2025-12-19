@@ -1,5 +1,19 @@
-ADDI sp, sp, 800
-ADDI r1, r1, 4
+_start:
+	ADDI sp, sp, 3200
+	ADDI r0, r0, 0
+	ADDI r1, r1, 8
 
-LEA r0, sp, r1, 4 ; r0 = sp + r1 * 4
-SUBI sp, sp, 8
+_loop:
+	SUBI r1, r1, 1
+	JLE _end
+	CALL _add1
+	JMP _loop
+
+_end:
+	HALT
+
+_add1:
+	ADDI r0, r0, 1
+	RET	
+
+

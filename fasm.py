@@ -22,6 +22,7 @@ class Reg(Enum):
     RA = 14
     FLAGS = 15
 
+
 def panic(s: str) -> None:
     print(s)
     sys.exit(1)    
@@ -97,6 +98,10 @@ class Instr:
     def as_int(self) -> int:
         return self.instr
 
+    def convert_label(self, label: str):
+        if label not in offset_table:
+            panic(f"label {label} is undefined!")
+
     def parse_instr(self, parse_str: str, instr_str: str):
         func_tbl = {
             "sr" : (parse_reg, self.set_sr),
@@ -142,6 +147,7 @@ class Instr:
             case "JL"   : self.set_opcode(0x4).set_subop(0x3)
             case "JG"   : self.set_opcode(0x4).set_subop(0x4)
             case "JGE"  : self.set_opcode(0x4).set_subop(0x5)
+            case "JLE"  : self.set_opcode(0x4).set_subop(0x6)
             case "PUSH" : self.set_opcode(0x5).set_subop(0x0)
             case "POP"  : self.set_opcode(0x5).set_subop(0x1)
             
@@ -150,7 +156,7 @@ class Instr:
         for i in range(1, len(parse_)):
             s = parse_[i]
             if s == ";": break
-            if s not in func_tbl:
+            if s not in func_tbl:                
                 panic(f"unrecognized parse_str {s}")
             parse, self.set = func_tbl[s]
             self.set(parse(instr_[i]))
@@ -166,6 +172,31 @@ def print_code(instrs: List[Instr]):
 
         print(f"{i.as_int() & 0xffffffff:08x}", end="")
     print()
+
+def resolve_labels(instrs):
+    offset_table = {}
+    offset = 0
+    
+    instrs_ = []
+
+    # save label offset info
+    for i, i_str in enumerate(instrs):
+        if i_str[0] == "_":
+            offset_table[i_str[:-1]] = offset
+            continue
+        instrs_.append(i_str)
+        offset += 1
+    
+    # replace labels with pc offsets
+    for i, i_str in enumerate(instrs_):
+        keyws = i_str.split(" ")
+        if len(keyws) == 2 and keyws[0] in ["CALL", "JMP", "JE", "JNE", "JG", "JL", "JLE", "JGE"]:
+            if keyws[1] not in offset_table:
+                panic(f"invalid label {keyws[1]}")
+            keyws[1] = f"pc {(offset_table[keyws[1]]-(i+1)) << 2}"
+            instrs_[i] = " ".join(keyws)
+    
+    return instrs_
 
 def main():
     parser = argparse.ArgumentParser(
@@ -183,12 +214,13 @@ def main():
 
     with open(args.input) as f:
         instrs = f.readlines()
+        instrs = resolve_labels([i_str.strip() for i_str in instrs if i_str.strip() != ""])
 
         res = []
+        
+        offset = 0
 
         for i_str in instrs:
-            i_str = i_str.strip()
-            if i_str == "": continue
             match i_str.split(" ")[0].upper():
                     case "NOP"  : i = Instr().parse_instr("NOP", i_str)
                     case "HALT" : i = Instr().parse_instr("HALT", i_str)

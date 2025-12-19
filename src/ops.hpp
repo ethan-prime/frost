@@ -19,66 +19,77 @@ static void ill(std::uint32_t instr) {
     panic(fmt::format("illegal instruction 0x{:08X}", instr));
 }
 
-static std::uint32_t extract(std::uint32_t x, int i, int j) {
-    int width = j - i + 1;
-    std::uint32_t mask = ((1u << width) - 1u) << i;
-    return (x & mask) >> i;
-}
+using Op = std::uint8_t;
+using Subop = std::uint8_t;
 
-template <int i, int j>
-static inline Reg parse_reg(std::uint32_t instr) {
-    std::uint8_t reg_idx = extract(instr, i, j);
-    return static_cast<Reg>(reg_idx);
-}
 
-template <int i, int j>
-static inline std::uint16_t parse_i(std::uint32_t instr) {
-    return extract(instr, i, j);
-}
+struct Instr {
+	std::uint32_t instr;
+	Instr(std::uint32_t instr_) : instr(instr_) {};
 
-static inline Reg parse_dr(std::uint32_t instr) {
-    return parse_reg<20, 23>(instr);
-}
+	inline operator std::uint32_t() const noexcept {
+		return instr;
+	}
 
-static inline Reg parse_sr1(std::uint32_t instr) {
-    return parse_reg<16, 19>(instr);
-}
+	std::uint32_t extract(int i, int j) {
+		int width = j - i + 1;
+		std::uint32_t mask = ((1u << width) - 1u) << i;
+		return (instr & mask) >> i;	
+	}
 
-static inline Reg parse_sr2(std::uint32_t instr) {
-    return parse_reg<12, 15>(instr);
-}
+	inline Reg parse_reg(int i, int j) {
+		std::uint8_t reg_idx = extract(i, j);
+		return static_cast<Reg>(reg_idx);
+	}
 
-static inline Reg parse_sr(std::uint32_t instr) {
-    return parse_reg<16, 19>(instr);
-}
+	inline std::uint16_t parse_i(int i, int j) {
+		return extract(i, j);
+	}
 
-static inline Reg parse_base_r(std::uint32_t instr) {
-    return parse_reg<16, 19>(instr);
-}
+	inline Reg parse_dr() {
+		return parse_reg(20, 23);
+	}
 
-static inline std::uint16_t parse_imm16(std::uint32_t instr) {
-    return parse_i<0, 15>(instr);
-}
+	inline Reg parse_sr1() {
+		return parse_reg(16, 19);
+	}
 
-static inline std::uint16_t parse_off16(std::uint32_t instr) {
-    return parse_i<0, 15>(instr);
-}
+	inline Reg parse_sr2() {
+		return parse_reg(12, 15);
+	}
 
-static inline std::uint16_t parse_off12(std::uint32_t instr) {
-    return parse_i<0, 11>(instr);
-}
+	inline Reg parse_sr() {
+		return parse_reg(16, 19);
+	}
 
-static inline std::uint16_t parse_trapvec24(std::uint32_t instr) {
-    return parse_i<0, 15>(instr);
-}
+	inline Reg parse_base_r() {
+		return parse_reg(16, 19);
+	}
 
-inline std::uint8_t parse_op(std::uint32_t instr) {
-    return parse_i<28, 31>(instr);
-}
+	inline std::uint16_t parse_imm16() {
+		return parse_i(0, 15);
+	}
 
-inline std::uint8_t parse_subop(std::uint32_t instr) {
-    return parse_i<24, 27>(instr);
-}
+	inline std::uint16_t parse_off16() {
+		return parse_i(0, 15);
+	}
+
+	inline std::uint16_t parse_off12() {
+		return parse_i(0, 11);
+	}
+
+	inline std::uint16_t parse_trapvec24() {
+		return parse_i(0, 15);
+	}
+
+	Op parse_op() {
+		return parse_i(28, 31);
+	}
+
+	Subop parse_subop() {
+		return parse_i(24, 27);
+	}
+};
 
 inline std::uint32_t sign_extend(std::uint32_t x, int bit_count) {
     if ((x >> (bit_count - 1)) & 1) {
@@ -104,12 +115,12 @@ static void int_alu(Reg dr, Reg sr1, Reg sr2, Op op) {
     reg[dr] = op(reg[sr1], reg[sr2]);
 }
 
-static void exec_int_alu(std::uint32_t instr) {
-    std::uint8_t subop = parse_subop(instr);
+static void exec_int_alu(Instr instr) {
+    Subop subop = instr.parse_subop();
     
-    Reg dr = parse_dr(instr);
-    Reg sr1 = parse_sr1(instr);
-    Reg sr2 = parse_sr2(instr);
+    Reg dr = instr.parse_dr();
+    Reg sr1 = instr.parse_sr1();
+    Reg sr2 = instr.parse_sr2();
 
     switch (subop) {
         case 0x0: int_alu(dr, sr1, sr2, std::plus<std::uint32_t>{}); break;
@@ -117,7 +128,7 @@ static void exec_int_alu(std::uint32_t instr) {
         case 0x2: int_alu(dr, sr1, sr2, std::bit_and<std::uint32_t>{}); break;
         case 0x3: int_alu(dr, sr1, sr2, std::bit_or<std::uint32_t>{}); break;
         case 0x4: int_alu(dr, sr1, sr2, std::bit_xor<std::uint32_t>{}); break;
-        default: ill(instr); 
+		default: ill(instr); 
     } 
 
     update_flags(dr);
@@ -128,12 +139,12 @@ static void int_imm(Reg dr, Reg sr, std::uint32_t imm16, Op op) {
 	reg[dr] = op(reg[sr], imm16);
 }
 
-static void exec_int_imm(std::uint32_t instr) {
-	std::uint8_t subop = parse_subop(instr);
+static void exec_int_imm(Instr instr) {
+	Subop subop = instr.parse_subop();
 
-	Reg dr = parse_dr(instr);
-	Reg sr = parse_sr1(instr);
-	std::uint32_t imm16 = sign_extend(parse_imm16(instr), 16);
+	Reg dr = instr.parse_dr();
+	Reg sr = instr.parse_sr1();
+	std::uint32_t imm16 = sign_extend(instr.parse_imm16(), 16);
 
 	switch (subop) {
 		case 0x0: int_imm(dr, sr, imm16, std::plus<std::uint32_t>{}); break;
@@ -147,9 +158,9 @@ static void exec_int_imm(std::uint32_t instr) {
 	update_flags(dr);
 }
 
-static void exec_call(std::uint32_t instr) {
-	Reg base_r = parse_base_r(instr);
-	std::uint32_t off16 = sign_extend(parse_off16(instr), 16);
+static void exec_call(Instr instr) {
+	Reg base_r = instr.parse_base_r();
+	std::uint32_t off16 = sign_extend(instr.parse_off16(), 16);
 
 	reg[Reg::SP] -= 4;
 	store<std::uint32_t>(reg[Reg::SP], reg[Reg::PC]);
@@ -162,8 +173,8 @@ static void exec_ret() {
 	reg[Reg::SP] += 4;
 }
 
-static void exec_special(std::uint32_t instr) {
-    std::uint8_t subop = parse_subop(instr);
+static void exec_special(Instr instr) {
+    Subop subop = instr.parse_subop();
 
     switch (subop) {
         // case 0x0: return; // no-op
@@ -175,12 +186,12 @@ static void exec_special(std::uint32_t instr) {
     }
 }
 
-static void exec_mem(std::uint32_t instr) {
-	std::uint8_t subop = parse_subop(instr);
+static void exec_mem(Instr instr) {
+	Subop subop = instr.parse_subop();
 
-	Reg base_r = parse_base_r(instr);
-	Reg dr = parse_dr(instr);
-	std::uint32_t off16 = parse_off16(instr);
+	Reg base_r = instr.parse_base_r();
+	Reg dr = instr.parse_dr();
+	std::uint32_t off16 = instr.parse_off16();
 
 	switch (subop) {
 		case 0x1: 
@@ -202,16 +213,16 @@ static void exec_mem(std::uint32_t instr) {
 			store<std::uint32_t>(reg[base_r] + off16, reg[dr]);
 			break;
 		case 0x7:
-			reg[dr] = reg[parse_sr1(instr)] + reg[parse_sr2(instr)] * parse_off12(instr);
+			reg[dr] = reg[instr.parse_sr1()] + reg[instr.parse_sr2()] * instr.parse_off12();
 			break;
 		default: ill(instr);
 	}
 }
 
-static void exec_stack(std::uint32_t instr) {
-	std::uint8_t subop = parse_subop(instr);
+static void exec_stack(Instr instr) {
+	Subop subop = instr.parse_subop();
 
-	Reg dr = parse_dr(instr);
+	Reg dr = instr.parse_dr();
 
 	switch (subop) {
 	case 0x0:
@@ -240,11 +251,11 @@ static void jump_flags(Reg base_r, std::uint32_t off16) {
 		reg[Reg::PC] = reg[base_r] + off16;
 }
 
-static void exec_jump(std::uint32_t instr) {
-	std::uint8_t subop = parse_subop(instr);
+static void exec_jump(Instr instr) {
+	Subop subop = instr.parse_subop();
 
-	Reg base_r = parse_base_r(instr);
-	std::uint32_t off16 = sign_extend(parse_off16(instr), 16);
+	Reg base_r = instr.parse_base_r();
+	std::uint32_t off16 = sign_extend(instr.parse_off16(), 16);
 
 	switch (subop) {
 		case 0x0: jump_flags<Flag::Z, Flag::N, Flag::P>(base_r, off16); break;
@@ -257,8 +268,8 @@ static void exec_jump(std::uint32_t instr) {
 	}
 }
 
-inline void exec_instr(std::uint32_t instr) {
-    std::uint8_t opcode = parse_op(instr);
+inline void exec_instr(Instr instr) {
+    std::uint8_t opcode = instr.parse_op();
 
     switch (opcode) {
         case 0x0: exec_special(instr); break;

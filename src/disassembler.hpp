@@ -38,9 +38,9 @@ static void print_imm12(std::uint16_t imm12) {
 }
 
 namespace disassembler {
-inline void print_asm_str(std::uint32_t instr) {
-    std::uint8_t opcode = parse_op(instr);
-    std::uint8_t subop  = parse_subop(instr);
+inline void print_asm_str(Instr instr) {
+    Op opcode = instr.parse_op();
+    Subop subop  = instr.parse_subop();
     
     std::unordered_map<std::uint32_t, std::string> i_tbl = {
         {0x00, "NOP"},
@@ -86,46 +86,46 @@ inline void print_asm_str(std::uint32_t instr) {
     if (i_tbl.count(code)) {
         std::print("{}{}{} ", debug::ansi::fg_lblue, i_tbl[code], debug::ansi::reset);
     } else {
-        std::println("instruction 0x{:08X}", instr);
+        std::println("instruction 0x{:08X}", static_cast<std::uint32_t>(instr));
     }
 
     switch(opcode) {
     case 0x0: {
 		if (subop == 0x3) {
-			print_register(parse_base_r(instr));
-			print_imm16(parse_off16(instr));
+			print_register(instr.parse_base_r());
+			print_imm16(instr.parse_off16());
 		};
 		break;
 	}
     case 0x1: 
-        print_register(parse_dr(instr));
-        print_register(parse_sr1(instr));
-        print_register(parse_sr2(instr));
+        print_register(instr.parse_dr());
+        print_register(instr.parse_sr1());
+        print_register(instr.parse_sr2());
         break;
 	case 0x2:
-		print_register(parse_dr(instr));
-		print_register(parse_sr(instr));
-		print_imm16(parse_imm16(instr));
+		print_register(instr.parse_dr());
+		print_register(instr.parse_sr());
+		print_imm16(instr.parse_imm16());
 		break;
 	case 0x3:
-		print_register(parse_dr(instr));
-		print_register(parse_base_r(instr));
+		print_register(instr.parse_dr());
+		print_register(instr.parse_base_r());
 		if (subop == 0x7) {
-			print_register(parse_sr2(instr));
-			print_imm12(parse_off12(instr));
+			print_register(instr.parse_sr2());
+			print_imm12(instr.parse_off12());
 		}
 		else
-			print_imm16(parse_off16(instr));
+			print_imm16(instr.parse_off16());
 		break;
 	case 0x4:
-		print_register(parse_base_r(instr));
-		print_imm16(parse_off16(instr));
+		print_register(instr.parse_base_r());
+		print_imm16(instr.parse_off16());
 		break;
 	case 0x5:
-		print_register(parse_dr(instr));
+		print_register(instr.parse_dr());
 		break;
     }
 
-    std::println("(0x{:08X})", instr); 
+    std::println("(0x{:08X})", static_cast<std::uint32_t>(instr)); 
 }
 }

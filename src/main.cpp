@@ -25,8 +25,8 @@ static void load_into_memory(const std::vector<std::uint8_t>& prog, std::uint32_
     std::copy(prog.begin(), prog.end(), memory.begin() + start_addr);
 }
 
-static inline std::uint32_t fetch_instr() {
-    std::uint32_t instr = load<std::uint32_t>(R_PC);
+static Instr fetch_instr() {
+	Instr instr(load<std::uint32_t>(R_PC));
     R_PC += 4;
     return instr;
 }
@@ -50,7 +50,7 @@ int main(int argc, const char* argv[]) {
 	size_t cycle = 0;
 
     while (!IS_HALTED) {
-        std::uint32_t instr = fetch_instr();
+        Instr instr = fetch_instr();
         exec_instr(instr);
         if (debug) {
 			std::println("");
