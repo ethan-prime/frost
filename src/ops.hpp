@@ -1,6 +1,7 @@
 #pragma once
-#include <cstdint>
 #include "vm.hpp"
+#include "trap.hpp"
+
 #include <iostream>
 #include <string>
 #include <fmt/core.h>
@@ -21,7 +22,6 @@ static void ill(std::uint32_t instr) {
 
 using Op = std::uint8_t;
 using Subop = std::uint8_t;
-
 
 struct Instr {
 	std::uint32_t instr;
@@ -200,7 +200,7 @@ static void exec_special(Instr instr) {
     switch (subop) {
         // case 0x0: return; // no-op
         case 0x1: IS_HALTED = true; return;
-        
+		case 0x2: trap::exec_trapvec(instr.parse_trapvec24()); break; 
 		case 0x3: exec_call(instr); return;
 		case 0x4: exec_ret(); return;
 		default: ill(instr);

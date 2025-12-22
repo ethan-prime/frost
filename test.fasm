@@ -1,4 +1,6 @@
 _start:
-	LDR r0, 0xEFFFFF10
-	SHL r0, r0, 3
+	LDR r1, 0x36
+	TRAP 0x1
+	LDR r1, 0x37
+	TRAP 0x1
 	HALT

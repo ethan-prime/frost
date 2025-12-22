@@ -45,6 +45,7 @@ inline void print_asm_str(Instr instr) {
     std::unordered_map<std::uint32_t, std::string> i_tbl = {
         {0x00, "NOP"},
         {0x01, "HALT"},
+		{0x02, "TRAP"},
 		{0x03, "CALL"},
 		{0x04, "RET"},
 
@@ -93,6 +94,9 @@ inline void print_asm_str(Instr instr) {
 
     switch(opcode) {
     case 0x0: {
+		if (subop == 0x2) {
+			print_imm16(instr.parse_trapvec24());
+		}
 		if (subop == 0x3) {
 			print_register(instr.parse_base_r());
 			print_imm16(instr.parse_off16());
