@@ -37,6 +37,10 @@ bool IS_HALTED = false;
 
 int main(int argc, const char* argv[]) {
     // parse args
+	bool debug = false;
+	{ using namespace std::literals;
+		if (argc > 1 && (argv[1] == "--debug"sv)) debug = true;
+	}
 
     auto prog = read_all_bytes(std::cin);
 
@@ -45,8 +49,6 @@ int main(int argc, const char* argv[]) {
 
     load_into_memory(prog, R_PC);
 
-    bool debug = true;
-    
 	size_t cycle = 0;
 
     while (!IS_HALTED) {

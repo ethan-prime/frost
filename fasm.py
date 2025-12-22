@@ -197,11 +197,10 @@ def resolve_labels(instrs):
     # replace labels with pc offsets
     for i, i_str in enumerate(instrs_):
         keyws = i_str.split(" ")
-        if len(keyws) == 2 and keyws[0] in ["CALL", "JMP", "JE", "JNE", "JG", "JL", "JLE", "JGE"]:
-            if keyws[1] not in offset_table:
-                panic(f"invalid label {keyws[1]}")
-            keyws[1] = f"pc {(offset_table[keyws[1]]-(i+1)) << 2}"
-            instrs_[i] = " ".join(keyws)
+        if keyws[0] in ["CALL", "JMP", "JE", "JNE", "JG", "JL", "JLE", "JGE"]:
+            if keyws[1] in offset_table:
+                keyws[1] = f"pc {(offset_table[keyws[1]]-(i+1)) << 2}"
+                instrs_[i] = " ".join(keyws)
     
     return instrs_
 
@@ -248,7 +247,7 @@ def main():
         instrs = f.readlines()
         instrs = resolve_labels([i_str.strip() for i_str in instrs if i_str.strip() != ""])
         instrs = resolve_loads(instrs)
-
+        
         res = []
         
         offset = 0

@@ -1,0 +1,40 @@
+_entry:
+	LDR sp, 0x5000
+	ADDI fp, sp, 0
+	SUBI sp, sp, 8
+	
+	LDR r0, 0x30
+	STB r0, fp, 0
+
+	LDR r0, 0x31
+	STB r0, fp, 0
+
+	LDR r0, 0x32
+	STB r0, fp, 1
+
+	LDR r0, 0x33
+	STB r0, fp, 2
+	
+	LDR r0, 0x34
+	STB r0, fp, 3
+
+	XOR r1, r1, r1
+	ADDI r1, fp, 0
+	CALL _puts
+
+	HALT
+
+_puts:
+	XOR r2, r2, r2
+	ADDI r2, r1, 0
+
+_l1:
+	LDB r1, r2, 0 ; r1 = *r2
+	AND r1, r1, r1 ; set flags
+	JE _end_puts       ; r1 == \0
+	TRAP 0x1      ; putc()
+	ADDI r2, r2, 1 ; next byte
+	JMP _l1
+
+_end_puts:
+	RET
